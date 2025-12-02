@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  business_id String   @id @default(uuid()) @db.Uuid
+  name        String
+  mobile      String?
+  email       String?
+  address     String?
+  active      Boolean  @default(true)
+  menu_url    String?
+  created_at  DateTime @default(now())
+
+  users       User[]
+  products    Product[]
+  orders      Order[]
+
+  @@map("business")
+}
+
+model User {
+  user_id       String   @id @default(uuid()) @db.Uuid
+  business_id   String   @db.Uuid
+  name          String
+  role          UserRole
+  password_hash String
+  active        Boolean  @default(true)
+
+  business Business @relation(fields: [business_id], references: [business_id])
+
+  orders   Order[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+}
+
+model Product {
+  product_id    String   @id @default(uuid()) @db.Uuid
+  business_id   String   @db.Uuid
+  name          String
+  description   String?
+  current_price Decimal  @db.Decimal(10,2)
+  active        Boolean  @default(true)
+  image         String?
+
+  business Business @relation(fields: [business_id], references: [business_id])
+
+  orderItems OrderItem[]
+
+  @@index([business_id])
+  @@map("products")
+}
+
+model Order {
+  order_id    String      @id @default(uuid()) @db.Uuid
+  business_id String      @db.Uuid
+  user_id     String      @db.Uuid
+  status      OrderStatus @default(PENDING)
+  total       Decimal     @db.Decimal(10,2)
+  created_at  DateTime    @default(now())
+
+  business Business @relation(fields: [business_id], references: [business_id])
+
+  user User @relation(fields: [user_id], references: [user_id])
+
+  items OrderItem[]
+
+  @@index([business_id, created_at])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  DELIVERED
+}
+
+model OrderItem {
+  order_item_id String   @id @default(uuid()) @db.Uuid
+  order_id      String   @db.Uuid
+  product_id    String  @db.Uuid
+  product_name  String
+  unit_price    Decimal  @db.Decimal(10,2)
+  quantity      Int
+  subtotal      Decimal  @db.Decimal(10,2)
+
+  order Order @relation(fields: [order_id], references: [order_id])
+
+  product Product @relation(fields: [product_id], references: [product_id])
+
+  @@index([order_id])
+  @@map("order_items")
+}
