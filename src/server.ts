@@ -3,6 +3,7 @@ import cors from 'cors';
 import { routes } from './routes/index';
 import { envs } from './config/envs';
 import { prisma } from './config/prisma';
+import { handleError } from './middlewares/error-handler.middleware';
 
 async function start() {
     const PORT = envs.PORT || 3000;
@@ -14,24 +15,25 @@ async function start() {
     }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
-    app.use('/api', routes())
+    app.use('/api', routes());
+    app.use(handleError);
 
-    // Health check endpoint
     app.get('/health', (req, res) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
 
-    const server = app.listen(PORT, () => {
-        console.log(`✅ Server is running on port ${PORT}`);
-        console.log(`📡 API available at http://localhost:${PORT}/api`);
+    app.get('/hello', (req, res) => {
+        res.json({ message: 'hello world' });
     });
 
-    // Maneja el cierre gracioso del servidor
+    const server = app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+
     process.on('SIGINT', async () => {
-        console.log('\n⛔ Shutting down gracefully...');
         server.close(async () => {
             await prisma.$disconnect();
-            console.log('✅ Server closed');
+            console.log('Server closed');
             process.exit(0);
         });
     });
