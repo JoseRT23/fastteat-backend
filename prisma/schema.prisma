@@ -24,23 +24,64 @@ model Business {
   menu_url    String?
   created_at  DateTime @default(now())
 
-  users       User[]
-  products    Product[]
-  orders      Order[]
+  users                    User[]
+  products                 Product[]
+  orders                   Order[]
+  businessInvitations      BusinessInvitations[]
+  BusinessUser             BusinessUser[]
 
   @@map("business")
+}
+
+model BusinessInvitations {
+  business_invitation_id  String   @id @default(uuid()) @db.Uuid
+  business_id             String   @db.Uuid
+  email                   String
+  role                    UserRole
+  token                   String
+  status                  InvitationStatus
+  expired_at              DateTime @default(now())  
+
+  business Business @relation(fields: [business_id], references: [business_id])
+
+  @@map("business_invitations")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+model BusinessUser {
+  business_user_id  String   @id @default(uuid()) @db.Uuid
+  business_id       String   @db.Uuid
+  user_id           String   @db.Uuid
+  role              UserRole
+  created_at        DateTime @default(now())  
+
+  business Business @relation(fields: [business_id], references: [business_id])
+
+  user User @relation(fields: [user_id], references: [user_id])
+
+  @@index([business_id, user_id])
+
+  @@map("business_user")
 }
 
 model User {
   user_id       String   @id @default(uuid()) @db.Uuid
   business_id   String   @db.Uuid
+  email         String   @unique  
+  phone         String   @unique
   name          String
-  role          UserRole
   password_hash String
   active        Boolean  @default(true)
+  created_at  DateTime @default(now())  
 
   business Business @relation(fields: [business_id], references: [business_id])
 
+  BusinessUser   BusinessUser[]
   orders   Order[]
 
   @@map("users")
@@ -48,6 +89,7 @@ model User {
 
 enum UserRole {
   ADMIN
+  OWNER
   STAFF
 }
 
@@ -88,7 +130,7 @@ model Order {
 
 enum OrderStatus {
   PENDING
-  PAID
+  ACCEPTED
   CANCELLED
   DELIVERED
 }
