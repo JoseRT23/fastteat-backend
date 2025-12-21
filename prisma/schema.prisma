@@ -24,7 +24,6 @@ model Business {
   menu_url    String?
   created_at  DateTime @default(now())
 
-  users                    User[]
   products                 Product[]
   orders                   Order[]
   businessInvitations      BusinessInvitations[]
@@ -71,15 +70,12 @@ model BusinessUser {
 
 model User {
   user_id       String   @id @default(uuid()) @db.Uuid
-  business_id   String   @db.Uuid
   email         String   @unique  
   phone         String   @unique
   name          String
   password_hash String
   active        Boolean  @default(true)
-  created_at  DateTime @default(now())  
-
-  business Business @relation(fields: [business_id], references: [business_id])
+  created_at  DateTime @default(now())
 
   BusinessUser   BusinessUser[]
   orders   Order[]
