@@ -3,14 +3,14 @@ import { businessService } from "../services/business.service";
 
 
 class BusinessController {
-  // async createBusiness(req: Request, res: Response) { // Crear negocio
-  //   try {
-  //     const business = await businessService.createBusiness(req.body);
-  //     return res.status(201).json(business);
-  //   } catch (error: any) {
-  //     return res.status(400).json({ message: error.message });
-  //   }
-  // }
+  async createBusiness(req: Request, res: Response) { // Crear negocio
+    try {
+      const business = await businessService.createBusiness(req.body);
+      return res.status(201).json(business);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
 
  
   async getAllBusinesses(req: Request, res: Response) {  // Obtener todos los negocios
