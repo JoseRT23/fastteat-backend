@@ -40,7 +40,7 @@ const getOrder = async({
 
 enum OrderStatus {
   PENDING = 'PENDING',
-  PAID = 'PAID',
+  ACCEPTED = 'ACCEPTED',
   CANCELLED = 'CANCELLED',
   DELIVERED = 'DELIVERED'
 }

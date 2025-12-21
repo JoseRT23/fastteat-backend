@@ -18,7 +18,7 @@ const getOrder = (req: Request, res: Response, next: NextFunction) => {
 
 enum OrderStatus {
   PENDING = 'PENDING',
-  PAID = 'PAID',
+  ACCEPTED = 'ACCEPTED',
   CANCELLED = 'CANCELLED',
   DELIVERED = 'DELIVERED'
 }
