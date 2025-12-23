@@ -1,28 +1,43 @@
-import { Request, Response } from "express";
-import { businessService } from "../services/business.service";
-
+import { NextFunction, Request, Response } from "express";
+import businessService from "../services/business.service";
 
 class BusinessController {
-  async createBusiness(req: Request, res: Response) { // Crear negocio
+  async createBusiness(req: Request, res: Response, next: NextFunction) { // Crear negocio
     try {
       const business = await businessService.createBusiness(req.body);
       return res.status(201).json(business);
     } catch (error: any) {
-      return res.status(400).json({ message: error.message });
+      next(error);
     }
   }
 
- 
-  async getAllBusinesses(req: Request, res: Response) {  // Obtener todos los negocios
+  async  getAllBusinesses (req: Request, res: Response, next: NextFunction) { // Listar negocios
     try {
-      const businesses = await businessService.getAllBusinesses();
-      return res.json(businesses);
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.pageSize as string) || 10;
+        const name = (req.query.name as string) || '';
+
+        const params = {
+          offset: (page -1) * limit,
+          limit,
+          name,
+        }; 
+
+      const businesses = await businessService.getAllBusinesses(params);
+    
+      return res.json({
+        page,
+        limit,
+        total: businesses.total,
+        totalPages: Math.ceil(businesses.total / limit),
+        data: businesses.data,
+      });
     } catch (error: any) {
-      return res.status(500).json({ message: error.message });
+      next(error);
     }
   }
 
-  async updateBusiness(req: Request, res: Response) { // Editar negocio
+  async updateBusiness(req: Request, res: Response, next: NextFunction) { // Editar negocio
     try {
       const businessId = req.params.business_id;
       const data = req.body;
@@ -31,7 +46,7 @@ class BusinessController {
       
       return res.json(business);
     } catch (error: any) {
-      return res.status(500).json({ message: error.message });
+      next(error);
     }
 }
 
