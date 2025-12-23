@@ -59,10 +59,16 @@ const getOrders = async ({
   status,
   sort,
 }: GetOrdersParams) => {
+
+    if (!Object.values(OrderStatus).includes(status)) {
+        throw CustomError.badRequest("Estado de orden inválido");
+    }
+
     const where = {
         business_id: businessId,
         ...(status && { status }),
     }
+    
     const orders = await prisma.order.findMany({
         where,
         orderBy: {
