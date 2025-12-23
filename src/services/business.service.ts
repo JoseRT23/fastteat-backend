@@ -1,51 +1,113 @@
-import { PrismaClient } from "../generated/prisma";
+import { prisma } from "../config/prisma"
+import { CustomError } from "../utils/errors/custom.errors";
 
-const prisma = new PrismaClient();
-
-export class BusinessService {
-  async createBusiness(data: {
+  type CreateBusinessParams = {
     name: string;
-    email?: string;
-    mobile?: string;
-  }) {
+    email: string;
+    mobile: string;
+  };
+  const createBusiness = async(data: CreateBusinessParams) => {
     if (!data.name || data.name.trim() === "") {
-      throw new Error("El nombre del negocio es obligatorio.");
+      throw CustomError.badRequest("El nombre del negocio es obligatorio.");
+    }
+
+    if (!data.email || data.email.trim() === "") {
+      throw CustomError.badRequest("El email del negocio es obligatorio.");
+    }
+
+    if (!data.mobile || data.mobile.trim() === "") {
+      throw CustomError.badRequest("El numero de telefono del negocio es obligatorio.");
     }
 
     if (data.email) {
       const emailExists = await prisma.business.findFirst({
         where: { email: data.email },
       });
-      if (emailExists) throw new Error("El email ya existe.");
+      if (emailExists) throw CustomError.badRequest("El email ya existe.");
     }
 
     if (data.mobile) {
       const mobileExists = await prisma.business.findFirst({
         where: {mobile: data.mobile },
       });
-      if (mobileExists) throw new Error("El número de teléfono ya existe.");
+      if (mobileExists) throw CustomError.badRequest("El numero de telefono del negocio es obligatorio.");
     }
 
     return await prisma.business.create({ data });
   }
 
-  async getAllBusinesses() {
-    return await prisma.business.findMany({
-       orderBy: {
-    created_at: "desc"
-  }
-    });
-  }
+  type GetAllBusinessesParams = {
+    offset: number;
+    limit: number;
+    name?: string;
+  };
 
-  async updateBusiness (business_id: string, data: any) {
+  const getAllBusinesses = async (params: GetAllBusinessesParams) => {
+    const where: any = {};
+    if (params.name) {
+      where.name = {contains: params.name, mode: "insensitive"};
+    }
+
+    const business = await prisma.business.findMany({
+      where,
+      skip: params.offset,
+      take: params.limit,
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+
+    const total = await prisma.business.count({where});
+    return { data: business, total};
+  };
+
+  type updateBusinessParams = {
+    name: string;
+    mobile: string;
+    email: string;
+    address: string;
+  };
+
+  const updateBusiness = async (business_id: string, data: updateBusinessParams) => {
+
+    if (!data.name || data.name.trim() === "") {
+      throw CustomError.badRequest("El nombre del negocio es obligatorio.");
+    }
+
+    if (!data.mobile || data.mobile.trim() === "") {
+      throw CustomError.badRequest("El numero de telefono del negocio es obligatorio.");
+    }
+
+    if (!data.email || data.email.trim() === "") {
+      throw CustomError.badRequest("El email del negocio es obligatorio.");
+    }
+
+    if (data.mobile) {
+      const mobileExists = await prisma.business.findFirst({
+        where: {mobile: data.mobile },
+      });
+      if (mobileExists) throw CustomError.badRequest("El numero de telefono del negocio ya existe.");
+    }
+
+    if (data.email) {
+      const emailExists = await prisma.business.findFirst({
+        where: { email: data.email },
+      });
+      if (emailExists) throw CustomError.badRequest("El email del negocio ya existe.");
+    }
 
     const business = await prisma.business.update({
+    
       where: { business_id },
       data,
     });
 
     return business;
   }
-}
 
-export const businessService = new BusinessService();
+
+export default {
+    createBusiness,
+    getAllBusinesses,
+    updateBusiness  
+};
