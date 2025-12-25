@@ -32,17 +32,7 @@ const createUser = async(input: CreateUserInput) => {
         }
     });
 
-    const token = await jwtAdapter.generateToken({
-        id: newUser.user_id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-    });
-
-    return {
-        ...newUser,
-        token,
-    }
+    return newUser;
 }
 
 type UpdateUserInput = {
