@@ -1,12 +1,11 @@
 import { Router } from "express";
+import authController from "../controllers/auth.controller";
 
-
-export const orderRoutes = () => {
+export const authRoutes = () => {
     const router = Router();
 
-    router.post('/login', () => {});
-    router.post('/register', () => {});
-    router.post('/change-password', () => {});
+    router.post('/login', authController.login);
+    router.post('/change-password', authController.changePassword);
     router.post('/recovery-password', () => {});
     router.post('/confirm-account', () => {});
 
