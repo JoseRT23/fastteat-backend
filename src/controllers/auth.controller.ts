@@ -3,7 +3,14 @@ import authService from "../services/auth.service";
 
 const login = (req: Request, res: Response, next: NextFunction) => {
     authService.login(req.body)
-        .then(token => res.status(200).json({ token }))
+        .then(token => {
+            res.cookie('token', token, { 
+                httpOnly: true, 
+                sameSite: 'strict', 
+                secure: process.env.NODE_ENV === 'production',
+            });
+            res.status(200).json({ token });
+        })
         .catch(error => next(error));
 };
 

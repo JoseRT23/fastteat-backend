@@ -4,6 +4,7 @@ import { routes } from './routes/index';
 import { envs } from './config/envs';
 import { prisma } from './config/prisma';
 import { handleError } from './middlewares/error-handler.middleware';
+import cookieParser from 'cookie-parser';
 
 async function start() {
     const PORT = envs.PORT || 3000;
@@ -15,6 +16,7 @@ async function start() {
     }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
     app.use('/api', routes());
     app.use(handleError);
 
