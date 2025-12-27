@@ -1,9 +1,12 @@
 import { Router } from "express";
 import ordersController from "../controllers/orders.controller";
+import auth from "../middlewares/auth.middleware";
 
 export const orderRoutes = () => {
     const router = Router();
     const controller = ordersController;
+
+    router.use([ auth.validateJWT ]);
 
     router.get('/', controller.getOrders);
     router.get('/:order_id', controller.getOrder);
