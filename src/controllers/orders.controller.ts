@@ -3,11 +3,11 @@ import orderService from "../services/order.service";
 
 
 const getOrder = (req: Request, res: Response, next: NextFunction) => {
-    const businessId = "96bbaf82-1453-4e2d-a9f0-0de5552951c5";
     const orderId = req.params.order_id;
 
     const params = {
-        businessId,
+        businessId: req.user.business_id as string,
+        userId: req.user.user_id as string,
         orderId
     };
 
@@ -27,10 +27,10 @@ const getOrders = (req: Request, res: Response, next: NextFunction) => {
     const limit = parseInt(req.query.pageSize as string) || 10;
     const status = (req.query.status as OrderStatus) || 'PENDING';
     const sort = (req.query.sort as 'asc' | 'desc') || 'desc';
-    const businessId = "96bbaf82-1453-4e2d-a9f0-0de5552951c5";
 
     const params = {
-        businessId,
+        businessId: req.user.business_id as string,
+        userId: req.user.user_id as string,
         offset: (page - 1) * limit,
         limit: limit,
         status,
@@ -49,19 +49,24 @@ const getOrders = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const createOrder = (req: Request, res: Response, next: NextFunction) => {
-    orderService.createOrder(req.body)
+    const order = {
+        userId: req.user.user_id,
+        ...req.body 
+    };
+
+    orderService.createOrder(order)
         .then(order => res.status(201).json(order))
         .catch(error => next(error));
 };
 
 const updateOrder = (req: Request, res: Response, next: NextFunction) => {
     const orderId = req.params.order_id;
-    // const params = {
-    //     businessId: "96bbaf82-1453-4e2d-a9f0-0de5552951c5",
-    //     status: req.body.status as OrderStatus
-    // }
+    const order = {
+        userId: req.user.user_id,
+        ...req.body 
+    };
 
-    orderService.updateOrder(orderId, req.body)
+    orderService.updateOrder(orderId, order)
         .then(order => res.status(200).json(order))
         .catch(error => next(error));
 };
@@ -70,7 +75,7 @@ const updateOrderStatus = (req: Request, res: Response, next: NextFunction) => {
     const orderId = req.params.order_id;
 
     const params = {
-        businessId: "96bbaf82-1453-4e2d-a9f0-0de5552951c5",
+        userId: req.user.user_id as string,
         status: req.body.status as OrderStatus
     }
 

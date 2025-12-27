@@ -2,15 +2,17 @@ import { prisma } from "../config/prisma"
 import { CustomError } from "../utils/errors/custom.errors"
 
 type GetOrderParams = {
-  businessId: string
+  businessId?: string
+  userId?: string
   orderId: string
 }
 const getOrder = async({
   businessId,
+  userId,
   orderId
 }: GetOrderParams) => {
     const where = {
-        business_id: businessId,
+        ...(userId && !businessId ? { user_id: userId } : { business_id: businessId }),
         order_id: orderId
     }
 
@@ -46,7 +48,8 @@ enum OrderStatus {
 }
 
 type GetOrdersParams = {
-  businessId: string
+  businessId?: string
+  userId?: string
   offset: number
   limit: number
   status: OrderStatus
@@ -54,6 +57,7 @@ type GetOrdersParams = {
 }
 const getOrders = async ({
   businessId,
+  userId,
   offset,
   limit,
   status,
@@ -65,7 +69,7 @@ const getOrders = async ({
     }
 
     const where = {
-        business_id: businessId,
+        ...(userId && !businessId ? { user_id: userId } : { business_id: businessId }),
         ...(status && { status }),
     }
     
@@ -185,8 +189,7 @@ type UpdateOrderInput = {
 const updateOrder = async (orderId: string, input: UpdateOrderInput) => {
     return await prisma.$transaction(async tx => {
         const existingOrder = await tx.order.findFirst({
-            where: { 
-                business_id: input.businessId,
+            where: {
                 order_id: orderId
             },
             include: {
@@ -303,7 +306,7 @@ const updateOrder = async (orderId: string, input: UpdateOrderInput) => {
 }
 
 type UpdateOrderStatusInput = {
-    businessId: string,
+    userId: string,
     status: OrderStatus
 }
 const updateOrderStatus = async (orderId: string, input: UpdateOrderStatusInput) => {
@@ -311,9 +314,18 @@ const updateOrderStatus = async (orderId: string, input: UpdateOrderStatusInput)
         throw CustomError.badRequest("Estado de orden inválido");
     }
 
+    const existsOrder = await prisma.order.findFirst({
+        where: {
+           order_id: orderId 
+        }
+    });
+
+    if (!existsOrder) {
+        throw CustomError.badRequest("La orden no existe");
+    }
+
     const updatedOrder = await prisma.order.update({
         where: {
-            business_id: input.businessId,
             order_id: orderId
         },
         data: {
