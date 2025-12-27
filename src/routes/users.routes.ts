@@ -6,12 +6,10 @@ import auth from "../middlewares/auth.middleware";
 export const userRoutes = () => {
     const router = Router();
 
-    router.use([ auth.validateJWT ]);
-
-    router.get('/:user_id', userController.getUser);
-    // router.post('/hook', userController.hook);
+    router.get('/:user_id', auth.validateJWT, userController.getUser);
     router.post('/', userController.createUser);
-    router.patch('/:user_id', userController.updateUser);
+    router.patch('/:user_id', auth.validateJWT, userController.updateUser);
+    // router.post('/hook', userController.hook);
 
     return router;
 }
