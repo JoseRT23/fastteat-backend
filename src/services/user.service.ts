@@ -1,7 +1,6 @@
 import { bcryptAdapter } from "../config/bcrypt.adapter";
-import { jwtAdapter } from "../config/jwt.adapter";
-import { prisma } from "../config/prisma";
 import { CustomError } from "../utils/errors/custom.errors";
+import { prisma } from "../config/prisma";
 
 type CreateUserInput = {
     name: string;
@@ -32,7 +31,12 @@ const createUser = async(input: CreateUserInput) => {
         }
     });
 
-    return newUser;
+    return {
+        user_id: newUser.user_id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+    };
 }
 
 type UpdateUserInput = {
