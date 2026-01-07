@@ -29,7 +29,7 @@ const login = async(input: LoginInput) => {
         }
     });
 
-    if (business.length === 1) {
+    if (business.length > 1) {
         return {
             multipleBusinesses: true,
             businesses: business.map(b => ({
