@@ -2,7 +2,7 @@
 
 import 'express-serve-static-core';
 
-type User = {
+export type UserToken = {
   user_id: string;
   business_id: string | null;
   name: string;
@@ -11,6 +11,6 @@ type User = {
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user: User;
+    user: UserToken;
   }
 }
