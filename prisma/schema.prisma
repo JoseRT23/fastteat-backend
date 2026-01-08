@@ -50,6 +50,7 @@ enum InvitationStatus {
   PENDING
   ACCEPTED
   EXPIRED
+  CANCELLED
 }
 
 model BusinessUser {
