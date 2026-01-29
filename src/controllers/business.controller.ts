@@ -50,5 +50,24 @@ class BusinessController {
     }
 }
 
+  async inviteUser(req: Request, res: Response, next: NextFunction) { 
+    try {
+      const businessId = req.user.business_id;
+      const { email, role } = req.body;
+
+      const result = await businessService.inviteUser({
+        businessId, 
+        email, 
+        role
+      });
+  
+      return res.status(201).json({
+        message:" Invitacion enviada correctamente"
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }
+
 export const businessController = new BusinessController();

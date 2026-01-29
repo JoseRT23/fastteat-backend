@@ -7,4 +7,5 @@ export const envs = {
   POSTGRES_PASSWORD: get('POSTGRES_PASSWORD').required().asString(),
   POSTGRES_DB: get('POSTGRES_DB').required().asString(),
   JWT_SEED: get('JWT_SEED').required().asString(),
+  EMAIL_KEY: get('EMAIL_KEY').required().asString(),
 }
