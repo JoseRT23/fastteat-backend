@@ -17,7 +17,7 @@ export const handleError = (error: unknown, req: Request, res: Response, next: N
     
     const unknownError = error as Error;
     console.log(`ENDPOINT => ${req.url}`);
-    console.log(`${unknownError}`);
+    console.log(unknownError);
     if (unknownError.name === 'PrismaClientKnownRequestError') {
         res.status(400).json({ message: 'Database request error' });
         next();
