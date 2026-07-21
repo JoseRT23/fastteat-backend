@@ -6,7 +6,7 @@ export const invitationsRoutes = () => {
 
   router.get("/validate/:token", invitationController.validateInvitation);
   router.post("/accept", invitationController.acceptInvitation);
-  router.post("/cancel", invitationController.cancelInvitation);
+  router.post("/decline", invitationController.cancelInvitation);
 
   return router;
 };
