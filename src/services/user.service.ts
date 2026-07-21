@@ -67,8 +67,12 @@ const getUser = async(user_id: string) => {
     });
 }
 
+const createUserFromInvitation = async() => {
+}
+
 export default {
     createUser,
     updateUser,
     getUser,
+    createUserFromInvitation,
 }
