@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import businessService from "../services/business.service";
 
 class BusinessController {
-  async createBusiness(req: Request, res: Response, next: NextFunction) { // Crear negocio
+  async createBusiness(req: Request, res: Response, next: NextFunction) {
+    // Crear negocio
     try {
       const business = await businessService.createBusiness(req.body);
       return res.status(201).json(business);
@@ -11,20 +12,21 @@ class BusinessController {
     }
   }
 
-  async  getAllBusinesses (req: Request, res: Response, next: NextFunction) { // Listar negocios
+  async getAllBusinesses(req: Request, res: Response, next: NextFunction) {
+    // Listar negocios
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.pageSize as string) || 10;
-        const name = (req.query.name as string) || '';
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.pageSize as string) || 10;
+      const name = (req.query.name as string) || "";
 
-        const params = {
-          offset: (page -1) * limit,
-          limit,
-          name,
-        }; 
+      const params = {
+        offset: (page - 1) * limit,
+        limit,
+        name,
+      };
 
       const businesses = await businessService.getAllBusinesses(params);
-    
+
       return res.json({
         page,
         limit,
@@ -37,34 +39,61 @@ class BusinessController {
     }
   }
 
-  async updateBusiness(req: Request, res: Response, next: NextFunction) { // Editar negocio
+  async updateBusiness(req: Request, res: Response, next: NextFunction) {
+    // Editar negocio
     try {
       const businessId = req.params.business_id;
       const data = req.body;
 
       const business = await businessService.updateBusiness(businessId, data);
-      
+
       return res.json(business);
     } catch (error: any) {
       next(error);
     }
-}
+  }
 
-  async inviteUser(req: Request, res: Response, next: NextFunction) { 
+  async inviteUser(req: Request, res: Response, next: NextFunction) {
     try {
       const businessId = req.user.business_id;
       const { email, role } = req.body;
 
       const result = await businessService.inviteUser({
-        businessId, 
-        email, 
-        role
+        businessId,
+        email,
+        role,
       });
-  
+
       return res.status(201).json({
-        message:" Invitacion enviada correctamente"
+        message: " Invitacion enviada correctamente",
       });
     } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async getBusinessById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const businessId = req.params.business_id;
+
+      const business = await businessService.getBusinessById(businessId);
+
+      return res.json(business);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteBusiness(req: Request, res: Response, next: NextFunction) {
+    try {
+      const businessId = req.params.business_id;
+
+      await businessService.deleteBusiness(businessId);
+
+      return res.json({
+        message: "Negocio eliminado correctamente.",
+      });
+    } catch (error) {
       next(error);
     }
   }

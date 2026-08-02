@@ -10,6 +10,8 @@ export const businessRoutes = () => {
   router.get("/", controller.getAllBusinesses);
   router.patch("/:business_id", auth.validateJWT, controller.updateBusiness);
   router.post("/invite-user", auth.validateJWT, controller.inviteUser);
+  router.get("/:business_id", controller.getBusinessById);
+  router.delete("/:business_id", auth.validateJWT, controller.deleteBusiness);
 
   return router;
-}
+};
