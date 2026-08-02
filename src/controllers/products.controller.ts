@@ -32,7 +32,9 @@ class ProductsController {
       };
 
       if (params.businessId === null) {
-          throw CustomError.badRequest("No tiene permisos para realizar esta acción."); 
+        throw CustomError.badRequest(
+          "No tiene permisos para realizar esta acción.",
+        );
       }
 
       const products = await productService.getAllProducts(params);
@@ -65,5 +67,30 @@ class ProductsController {
       next(error);
     }
   }
+
+  async getProductById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const productId = req.params.product_id;
+
+      const product = await productService.getProductById(productId);
+
+      return res.json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getProductsByBusiness(req: Request, res: Response, next: NextFunction) {
+    try {
+      const businessId = req.params.businessId;
+
+      const products = await productService.getProductsByBusiness(businessId);
+
+      return res.json(products);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
-      export const productsController = new ProductsController();
+
+export const productsController = new ProductsController();

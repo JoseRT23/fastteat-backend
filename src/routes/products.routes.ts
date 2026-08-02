@@ -1,16 +1,18 @@
-import { Router } from 'express';
-import { productsController } from '../controllers/products.controller';
+import { Router } from "express";
+import { productsController } from "../controllers/products.controller";
 import auth from "../middlewares/auth.middleware";
 
 export const productRoutes = () => {
-    const router = Router();
-    const controller = productsController;
+  const router = Router();
+  const controller = productsController;
 
-    router.use([ auth.validateJWT ]);
+  router.use([auth.validateJWT]);
 
-    router.post("/", controller.createProduct);
-    router.get("/", controller.getAllProducts);
-    router.patch("/:product_id", controller.updateProduct);
+  router.post("/", controller.createProduct);
+  router.get("/", controller.getAllProducts);
+  router.get("/business/:businessId", controller.getProductsByBusiness);
+  router.get("/:product_id", controller.getProductById);
+  router.patch("/:product_id", controller.updateProduct);
 
-    return router;
-}
+  return router;
+};

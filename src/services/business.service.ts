@@ -219,9 +219,48 @@ const inviteUser = async (data: InviteUserParams) => {
   };
 };
 
+const getBusinessById = async (business_id: string) => {
+  const business = await prisma.business.findFirst({
+    where: {
+      business_id,
+      active: true,
+    },
+  });
+
+  if (!business) {
+    throw CustomError.notFound("Negocio no encontrado.");
+  }
+
+  return business;
+};
+
+const deleteBusiness = async (business_id: string) => {
+  const business = await prisma.business.findFirst({
+    where: {
+      business_id,
+      active: true,
+    },
+  });
+
+  if (!business) {
+    throw CustomError.notFound("Negocio no encontrado.");
+  }
+
+  return await prisma.business.update({
+    where: {
+      business_id,
+    },
+    data: {
+      active: false,
+    },
+  });
+};
+
 export default {
   createBusiness,
   getAllBusinesses,
   updateBusiness,
   inviteUser,
+  getBusinessById,
+  deleteBusiness,
 };
