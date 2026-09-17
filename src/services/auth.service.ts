@@ -41,9 +41,7 @@ const login = async(input: LoginInput) => {
 
     const token = await jwtAdapter.generateToken({
         user_id: user.user_id,
-        business_id: business.length > 0 ? business[0].business.business_id : null,
-        name: user.name,
-        email: user.email
+        business_id: business.length > 0 ? business[0].business.business_id : null
     });
 
     return token;
@@ -128,8 +126,26 @@ const changePassword = async(user_id: string, input: ChangePasswordInput) => {
     return { message: "Contraseña actualizada correctamente" };
 }
 
+const me = async(user_id: string) => {
+    const user = await prisma.user.findUnique({
+        where: {
+            user_id: user_id
+        },
+        select: {
+            user_id: true,
+            name: true,
+            email: true, 
+        }
+    });
+
+    if (!user) throw CustomError.notFound("Usuario no encontrado");
+
+    return user;
+}
+
 export default {
     login,
     businessLogin,
     changePassword,
+    me,
 }

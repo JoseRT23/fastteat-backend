@@ -12,7 +12,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
                 secure: process.env.NODE_ENV === 'production',
             });
 
-            return res.status(200).json({ token: result });
+            return res.status(200).json({ message: "Login successful" });
         }
 
         return res.status(200).json(result);
@@ -42,8 +42,22 @@ const changePassword = (req: Request, res: Response, next: NextFunction) => {
         .catch(error => next(error));
 };
 
+const me = (req: Request, res: Response, next: NextFunction) => {
+    const user_id = req.user?.user_id;
+    if (!user_id) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    authService.me(user_id)
+        .then(user => res.status(200).json({
+            ...user,
+            ...(req.user?.business_id ? { business_id: req.user.business_id } : {})
+        }))
+        .catch(error => next(error));
+};
+
 export default {
     login,
     changePassword,
     businessLogin,
+    me,
 }

@@ -8,6 +8,8 @@ type CreateBusinessParams = {
   name: string;
   email: string;
   mobile: string;
+  latitude?: string;
+  longitude?: string;
 };
 const createBusiness = async (data: CreateBusinessParams) => {
   if (!data.name || data.name.trim() === "") {

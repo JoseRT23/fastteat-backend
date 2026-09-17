@@ -1,5 +1,6 @@
 import { Router } from "express";
 import authController from "../controllers/auth.controller";
+import authMiddleware from "../middlewares/auth.middleware";
 
 export const authRoutes = () => {
     const router = Router();
@@ -9,6 +10,6 @@ export const authRoutes = () => {
     router.post('/change-password', authController.changePassword);
     router.post('/recovery-password', () => {});
     router.post('/confirm-account', () => {});
-
+    router.get('/me', authMiddleware.validateJWT, authController.me);
     return router;
 }

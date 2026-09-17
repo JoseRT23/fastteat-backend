@@ -20,6 +20,8 @@ model Business {
   mobile      String   @unique
   email       String   @unique
   address     String?
+  latitude    Decimal? @db.Decimal(10, 7)
+  longitude   Decimal? @db.Decimal(10, 7)  
   active      Boolean  @default(true)
   menu_url    String?
   created_at  DateTime @default(now())
