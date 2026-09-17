@@ -10,9 +10,10 @@ async function start() {
     const PORT = envs.PORT || 3000;
     const app = express();
     app.use(cors({
-            origin: '*',
-            methods: ['GET', 'POST', 'DELETE', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
+        origin: 'http://localhost:5173',
+        credentials: true,
+        methods: ['GET', 'POST', 'DELETE', 'PATCH'],
+        allowedHeaders: ['Content-Type'],
     }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
