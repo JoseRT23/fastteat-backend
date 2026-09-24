@@ -2,6 +2,24 @@ import { NextFunction, Request, Response } from "express";
 import businessService from "../services/business.service";
 
 class BusinessController {
+  async registerBusiness(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await businessService.registerBusiness(req.body);
+      return res.status(201).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async checkUserEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await businessService.checkUserEmail(req.query.email as string);
+      return res.json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
   async createBusiness(req: Request, res: Response, next: NextFunction) {
     // Crear negocio
     try {

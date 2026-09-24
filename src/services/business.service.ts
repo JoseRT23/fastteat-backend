@@ -3,6 +3,121 @@ import { CustomError } from "../utils/errors/custom.errors";
 import { InvitationStatus } from "../generated/prisma/enums";
 import { randomUUID } from "node:crypto";
 import emailService from "./email.service";
+import { bcryptAdapter } from "../config/bcrypt.adapter";
+
+type RegisterBusinessParams = {
+  user: {
+    name?: string;
+    email: string;
+    phone?: string;
+    password?: string;
+  };
+  business: {
+    name: string;
+    email: string;
+    mobile: string;
+    address?: string;
+  };
+};
+
+const registerBusiness = async (data: RegisterBusinessParams) => {
+  const email = data.user?.email?.trim().toLowerCase();
+
+  if (!email) {
+    throw CustomError.badRequest("El email del usuario es obligatorio.");
+  }
+
+  if (!data.business?.name?.trim() || !data.business?.email?.trim() || !data.business?.mobile?.trim()) {
+    throw CustomError.badRequest("El nombre, email y telefono del negocio son obligatorios.");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    let user = await tx.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { phone: data.user?.phone?.trim() }
+        ]
+      }
+    });
+
+    if (user && (user.email === email || user.phone === data.user?.phone?.trim())) {
+      throw CustomError.badRequest("El email o telefono del usuario ya estan en uso.");
+    }
+
+    const userHasBusiness = user ? await tx.businessUser.findFirst({ where: {
+      AND: [
+        { user_id: user.user_id },
+        { role: "OWNER" }
+      ]
+    } }) : null;
+
+    if (userHasBusiness) {
+      throw CustomError.badRequest("El usuario ya tiene un negocio asociado.");
+    }
+
+    const businessExists = await tx.business.findFirst({
+      where: { 
+        OR: [
+          { email: data.business.email.trim().toLowerCase() },
+          { mobile: data.business.mobile.trim() },
+          { name: data.business.name.trim() }
+        ]
+      }
+    });
+
+    if (businessExists) {
+      throw CustomError.badRequest("El email, telefono o nombre del negocio ya estan en uso.");
+    }
+
+    if (!user) {
+      if (!data.user.name?.trim() || !data.user.phone?.trim() || !data.user.password) {
+        throw CustomError.badRequest("Para un usuario nuevo debes indicar nombre, telefono y contraseña.");
+      }
+
+      user = await tx.user.create({
+        data: {
+          name: data.user.name.trim(),
+          email,
+          phone: data.user.phone.trim(),
+          password_hash: bcryptAdapter.hash(data.user.password),
+        },
+      });
+    }
+
+    const business = await tx.business.create({
+      data: {
+        name: data.business.name.trim(),
+        email: data.business.email.trim().toLowerCase(),
+        mobile: data.business.mobile.trim(),
+        address: data.business.address?.trim() || null,
+      },
+    });
+
+    await tx.businessUser.create({
+      data: {
+        business_id: business.business_id,
+        user_id: user.user_id,
+        role: UserRole.OWNER,
+      },
+    });
+
+    return { business, user_id: user.user_id };
+  });
+};
+
+const checkUserEmail = async (email: string) => {
+  if (!email?.trim()) {
+    throw CustomError.badRequest("El email es obligatorio.");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: email.trim().toLowerCase() },
+    select: { user_id: true },
+  });
+
+  return { exists: Boolean(user) };
+};
 
 type CreateBusinessParams = {
   name: string;
@@ -259,6 +374,8 @@ const deleteBusiness = async (business_id: string) => {
 };
 
 export default {
+  registerBusiness,
+  checkUserEmail,
   createBusiness,
   getAllBusinesses,
   updateBusiness,
