@@ -6,6 +6,8 @@ export const businessRoutes = () => {
   const router = Router();
   const controller = businessController;
 
+  router.get("/check-user", controller.checkUserEmail);
+  router.post("/register", controller.registerBusiness);
   router.post("/", controller.createBusiness);
   router.get("/", controller.getAllBusinesses);
   router.patch("/:business_id", auth.validateJWT, controller.updateBusiness);
