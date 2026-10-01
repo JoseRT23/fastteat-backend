@@ -16,9 +16,9 @@ datasource db {
 
 model Business {
   business_id String   @id @default(uuid()) @db.Uuid
-  name        String   @unique
-  mobile      String   @unique
-  email       String   @unique
+  name        String   
+  mobile      String   
+  email       String   
   address     String?
   latitude    Decimal? @db.Decimal(10, 7)
   longitude   Decimal? @db.Decimal(10, 7)  
@@ -26,10 +26,13 @@ model Business {
   menu_url    String?
   created_at  DateTime @default(now())
 
-  products                 Product[]
-  orders                   Order[]
-  businessInvitations      BusinessInvitations[]
+  Products                 Product[]
+  Orders                   Order[]
+  BusinessInvitations      BusinessInvitations[]
   BusinessUser             BusinessUser[]
+  BusinessRatings          BusinessRating[]
+
+  @@unique([name, mobile, email])
 
   @@map("business")
 }
@@ -62,26 +65,28 @@ model BusinessUser {
   role              UserRole
   created_at        DateTime @default(now())  
 
-  business Business @relation(fields: [business_id], references: [business_id])
-
-  user User @relation(fields: [user_id], references: [user_id])
+  Business Business @relation(fields: [business_id], references: [business_id])
+  User     User     @relation(fields: [user_id], references: [user_id])
 
   @@index([business_id, user_id])
-
   @@map("business_user")
 }
 
 model User {
   user_id       String   @id @default(uuid()) @db.Uuid
-  email         String   @unique  
-  phone         String   @unique
+  email         String     
+  phone         String  
   name          String
   password_hash String
   active        Boolean  @default(true)
   created_at  DateTime @default(now())
 
-  BusinessUser   BusinessUser[]
-  orders   Order[]
+  BusinessUser    BusinessUser[]
+  Orders          Order[]
+  BusinessRatings BusinessRating[]
+  ProductRatings  ProductRating[]
+
+  @@unique([email, phone])
 
   @@map("users")
 }
@@ -93,51 +98,51 @@ enum UserRole {
 }
 
 model Product {
-  product_id    String   @id @default(uuid()) @db.Uuid
-  business_id   String   @db.Uuid
-  sub_category_id   String   @db.Uuid
-  name          String
-  description   String? 
-  current_price Decimal  @db.Decimal(10,2)
-  active        Boolean  @default(true)
-  image         String?
+  product_id      String   @id @default(uuid()) @db.Uuid
+  business_id     String   @db.Uuid
+  sub_category_id String   @db.Uuid
+  name            String
+  description     String? 
+  current_price   Decimal  @db.Decimal(10,2)
+  active          Boolean  @default(true)
+  image           String?
 
-  business Business @relation(fields: [business_id], references: [business_id])
-  subCategories SubCategory @relation(fields: [sub_category_id], references: [sub_category_id])
+  Business      Business    @relation(fields: [business_id], references: [business_id])
+  SubCategories SubCategory @relation(fields: [sub_category_id], references: [sub_category_id])
 
-  orderItems OrderItem[]
+  OrderItems      OrderItem[]
+  ProductRatings  ProductRating[]
 
-  @@index([business_id])
+  @@index([business_id, sub_category_id])
   @@map("products")
 }
 
 model Category {
   category_id String   @id @default(uuid()) @db.Uuid
   name        String   @db.VarChar(100)
-  slug        String   @unique @db.VarChar(120) //Identificador amigable para URLs/filtros
+  slug        String   @db.VarChar(120)                //Identificador amigable para URLs/filtros
   description String?  @db.VarChar(255)
   icon        String?  @db.VarChar(255)
   image       String?  @db.VarChar(255)
-  order       Int      @default(0)              //Controlar el orden en que aparecen
+  order       Int      @default(0)                     //Controlar el orden en que aparecen
   active      Boolean  @default(true)
-
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
   subCategories SubCategory[]
 
+  @@unique([slug])
   @@map("categories")
 }
 
 model SubCategory {
-  sub_category_id  String   @id @default(uuid()) @db.Uuid
-  category_id     String   @unique @db.Uuid 
-  name            String   @unique @db.VarChar(100)
-  slug            String   @unique @db.VarChar(120)
+  sub_category_id String   @id @default(uuid()) @db.Uuid
+  category_id     String   @db.Uuid 
+  name            String   @db.VarChar(100)
+  slug            String   @db.VarChar(120)
   description     String?  @db.VarChar(255)
   order           Int      @default(0)
   active          Boolean  @default(true)
-
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
@@ -145,8 +150,10 @@ model SubCategory {
 
   products   Product[]
 
+  @@unique([category_id, name, slug])
   @@map("sub_categories")
 }
+
 
 model Order {
   order_id    String      @id @default(uuid()) @db.Uuid
@@ -157,10 +164,11 @@ model Order {
   created_at  DateTime    @default(now())
 
   business Business @relation(fields: [business_id], references: [business_id])
+  user     User     @relation(fields: [user_id], references: [user_id])
 
-  user User @relation(fields: [user_id], references: [user_id])
-
-  items OrderItem[]
+  items           OrderItem[]
+  BusinessRatings BusinessRating?
+  ProductRatings  ProductRating[]
 
   @@index([business_id, created_at])
   @@map("orders")
@@ -176,16 +184,62 @@ enum OrderStatus {
 model OrderItem {
   order_item_id String   @id @default(uuid()) @db.Uuid
   order_id      String   @db.Uuid
-  product_id    String  @db.Uuid
+  product_id    String   @db.Uuid
   product_name  String
   unit_price    Decimal  @db.Decimal(10,2)
   quantity      Int
   subtotal      Decimal  @db.Decimal(10,2)
 
-  order Order @relation(fields: [order_id], references: [order_id])
-
+  order   Order   @relation(fields: [order_id], references: [order_id])
   product Product @relation(fields: [product_id], references: [product_id])
 
   @@index([order_id])
   @@map("order_items")
+}
+
+model BusinessRating {
+  business_rating_id  String    @id @default(uuid()) @db.Uuid
+  business_id         String    @db.Uuid
+  user_id             String    @db.Uuid
+  order_id            String    @db.Uuid
+  score               Int
+  comment             String?  @db.VarChar(1000)
+  active              Boolean  @default(true)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  @@unique([user_id])
+  @@unique([order_id])
+  @@index([business_id])
+  @@index([user_id])
+  @@index([order_id])
+
+  business  Business  @relation(fields: [business_id], references: [business_id])
+  User      User      @relation(fields: [user_id], references: [user_id])
+  Order     Order     @relation(fields: [order_id], references: [order_id])
+
+  @@map("business_ratings")
+}
+
+model ProductRating {
+  product_rating_id String  @id @default(uuid()) @db.Uuid
+  product_id        String  @db.Uuid
+  user_id           String  @db.Uuid
+  order_id          String  @db.Uuid
+  score             Int
+  comment           String? @db.VarChar(1000)
+  active            Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  product Product @relation(fields: [product_id], references: [product_id])
+  user    User    @relation(fields: [user_id], references: [user_id])
+  order   Order   @relation(fields: [order_id ], references: [order_id ])
+
+  @@unique([user_id, product_id, order_id])
+  @@index([product_id])
+  @@index([user_id])
+  @@index([order_id])
+
+  @@map("product_ratings")
 }
