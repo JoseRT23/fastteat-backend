@@ -15,26 +15,66 @@ datasource db {
 }
 
 model Business {
-  business_id String   @id @default(uuid()) @db.Uuid
-  name        String   
-  mobile      String   
-  email       String   
-  address     String?
-  latitude    Decimal? @db.Decimal(10, 7)
-  longitude   Decimal? @db.Decimal(10, 7)  
-  active      Boolean  @default(true)
-  menu_url    String?
-  created_at  DateTime @default(now())
+  business_id           String   @id @default(uuid()) @db.Uuid
+  name                  String   
+  mobile                String   
+  email                 String   
+  address               String?
+  latitude              Decimal? @db.Decimal(10, 7)
+  longitude             Decimal? @db.Decimal(10, 7)  
+  active                Boolean  @default(true) //El negocio existe y está habilitado en la plataforma
+  menu_url              String?
+  timezone              String   @default("America/Bogota")
+  default_prep_time     Int      @default(30)  // minutos de preparación de pedidos
+  last_order_offset     Int      @default(30)  // min antes del cierre
+  is_accepting_orders   Boolean  @default(true) // El dueño decide recibir o no pedidos ahora
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  //TODO: manejar cierres temporales de negocio
+  //temporarily_closed    Boolean  @default(false) // Algo impide operar temporalmente
+  //closed_until        DateTime? // si tiene valor y ya pasó, el sistema reactiva
+  //closed_reason       String?   // "Sin masa", "Saturado", "Sin luz"
 
   Products                 Product[]
   Orders                   Order[]
   BusinessInvitations      BusinessInvitations[]
   BusinessUser             BusinessUser[]
   BusinessRatings          BusinessRating[]
+  Hours                    BusinessHours[]
+  Closures                 BusinessClosure[]  
 
   @@unique([name, mobile, email])
 
   @@map("business")
+}
+
+model BusinessHours {
+  business_hour_id   String  @id @default(uuid()) @db.Uuid
+  business_id        String  @db.Uuid
+  day_of_week        Int     // 0=domingo ... 6=sábado
+  open_time          String  // "08:00"
+  close_time         String  // "22:00"
+  is_closed          Boolean @default(false) // día cerrado
+
+  business Business @relation(fields: [business_id], references: [business_id], onDelete: Cascade)
+
+  @@unique([business_id, day_of_week, open_time])
+  @@index([business_id])
+  @@map("business_hours")
+}
+
+model BusinessClosure {
+  business_closure_id   String   @id @default(uuid()) @db.Uuid
+  business_id           String   @db.Uuid
+  start_at              DateTime
+  end_at                DateTime
+  reason                String?
+
+  business Business @relation(fields: [business_id], references: [business_id], onDelete: Cascade)
+
+  @@index([business_id, start_at, end_at])
+  @@map("business_closure")
 }
 
 model BusinessInvitations {
@@ -106,6 +146,8 @@ model Product {
   current_price   Decimal  @db.Decimal(10,2)
   active          Boolean  @default(true)
   image           String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
   Business      Business    @relation(fields: [business_id], references: [business_id])
   SubCategories SubCategory @relation(fields: [sub_category_id], references: [sub_category_id])
@@ -162,6 +204,10 @@ model Order {
   status      OrderStatus @default(PENDING)
   total       Decimal     @db.Decimal(10,2)
   created_at  DateTime    @default(now())
+  cutoff_at   DateTime? // hora en que se dejaban de aceptar pedidos vigente al crear el pedido, calculado con el last_order_offset del negocio
+  ready_at    DateTime? // estimación de listo al crear el pedido, se calcula con el tiempo de preparación del negocio
+  accepted_at DateTime  // cuándo se aceptó realmente
+  ready_real  DateTime? // cuándo estuvo listo realmente, cuando el negocio lo marcó como listo  
 
   business Business @relation(fields: [business_id], references: [business_id])
   user     User     @relation(fields: [user_id], references: [user_id])
