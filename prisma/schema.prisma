@@ -105,8 +105,8 @@ model BusinessUser {
   role              UserRole
   created_at        DateTime @default(now())  
 
-  Business Business @relation(fields: [business_id], references: [business_id])
-  User     User     @relation(fields: [user_id], references: [user_id])
+  business Business @relation(fields: [business_id], references: [business_id])
+  user     User     @relation(fields: [user_id], references: [user_id])
 
   @@index([business_id, user_id])
   @@map("business_user")
@@ -121,12 +121,13 @@ model User {
   active        Boolean  @default(true)
   created_at  DateTime @default(now())
 
-  BusinessUser    BusinessUser[]
-  Orders          Order[]
-  BusinessRatings BusinessRating[]
-  ProductRatings  ProductRating[]
+  businessUser    BusinessUser[]
+  orders          Order[]
+  businessRatings BusinessRating[]
+  productRatings  ProductRating[]
 
-  @@unique([email, phone])
+  @@unique([email])
+  @@unique([phone])
 
   @@map("users")
 }
@@ -149,11 +150,11 @@ model Product {
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
-  Business      Business    @relation(fields: [business_id], references: [business_id])
-  SubCategories SubCategory @relation(fields: [sub_category_id], references: [sub_category_id])
+  business      Business    @relation(fields: [business_id], references: [business_id])
+  subCategories SubCategory @relation(fields: [sub_category_id], references: [sub_category_id])
 
-  OrderItems      OrderItem[]
-  ProductRatings  ProductRating[]
+  orderItems      OrderItem[]
+  productRatings  ProductRating[]
 
   @@index([business_id, sub_category_id])
   @@map("products")
@@ -206,15 +207,15 @@ model Order {
   created_at  DateTime    @default(now())
   cutoff_at   DateTime? // hora en que se dejaban de aceptar pedidos vigente al crear el pedido, calculado con el last_order_offset del negocio
   ready_at    DateTime? // estimación de listo al crear el pedido, se calcula con el tiempo de preparación del negocio
-  accepted_at DateTime  // cuándo se aceptó realmente
+  accepted_at DateTime?  // cuándo se aceptó realmente
   ready_real  DateTime? // cuándo estuvo listo realmente, cuando el negocio lo marcó como listo  
 
   business Business @relation(fields: [business_id], references: [business_id])
   user     User     @relation(fields: [user_id], references: [user_id])
 
   items           OrderItem[]
-  BusinessRatings BusinessRating?
-  ProductRatings  ProductRating[]
+  businessRatings BusinessRating?
+  productRatings  ProductRating[]
 
   @@index([business_id, created_at])
   @@map("orders")
@@ -261,8 +262,8 @@ model BusinessRating {
   @@index([order_id])
 
   business  Business  @relation(fields: [business_id], references: [business_id])
-  User      User      @relation(fields: [user_id], references: [user_id])
-  Order     Order     @relation(fields: [order_id], references: [order_id])
+  user      User      @relation(fields: [user_id], references: [user_id])
+  order     Order     @relation(fields: [order_id], references: [order_id])
 
   @@map("business_ratings")
 }
