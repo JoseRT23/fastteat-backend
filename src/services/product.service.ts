@@ -6,6 +6,7 @@ type CreateProductParams = {
   name: string;
   description: string;
   current_price: number;
+  sub_category_id: string;
 };
 
 const createProduct = async (data: CreateProductParams) => {
@@ -20,6 +21,7 @@ const createProduct = async (data: CreateProductParams) => {
   return await prisma.product.create({
     data: {
       business_id: data.business_id,
+      sub_category_id: data.sub_category_id,
       name: data.name,
       description: data.description,
       current_price: data.current_price,
@@ -67,6 +69,7 @@ type UpdateProductParams = {
   name: string;
   description: string;
   current_price: number;
+  sub_category_id: string;
   businessId: string;
 };
 
@@ -85,12 +88,17 @@ const updateProduct = async (product_id: string, data: UpdateProductParams) => {
     );
   }
 
+  if(!data.sub_category_id || data.sub_category_id.trim() ==="") {
+    throw CustomError.badRequest("La subcategoria del producto es obligatoria.");
+  }
+
   const product = await prisma.product.update({
     where: { product_id, business_id: data.businessId },
     data: {
       name: data.name,
       description: data.description,
       current_price: data.current_price,
+      sub_category_id: data.sub_category_id,
     },
   });
 
