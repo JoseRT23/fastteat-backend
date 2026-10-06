@@ -21,17 +21,23 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-const businessLogin = (req: Request, res: Response, next: NextFunction) => {
-    authService.businessLogin(req.body)
-        .then(token => {
-            res.cookie('token', token, {
-                httpOnly: true, 
-                sameSite: 'strict', 
-                secure: process.env.NODE_ENV === 'production',
-            });
-            res.status(200).json({ token });
-        })
-        .catch(error => next(error));
+const businessLogin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await authService.businessLogin(req.body);
+
+        if (typeof result !== 'string') {
+            return res.status(200).json(result);
+        }
+
+        res.cookie('token', result, {
+            httpOnly: true, 
+            sameSite: 'strict', 
+            secure: process.env.NODE_ENV === 'production',
+        });
+        return res.status(200).json({ token: result });
+    } catch (error) {
+        next(error);
+    }
 }
 
 const changePassword = (req: Request, res: Response, next: NextFunction) => {
