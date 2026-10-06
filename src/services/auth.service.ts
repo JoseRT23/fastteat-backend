@@ -9,7 +9,7 @@ type LoginInput = {
 }
 const login = async(input: LoginInput) => {
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
         where: {
             email: input.email
         }
@@ -20,28 +20,8 @@ const login = async(input: LoginInput) => {
     const isPasswordValid = bcryptAdapter.compare(input.password, user.password_hash);
     if (!isPasswordValid) throw CustomError.badRequest("Usuario o contraseña incorrectos");
     
-    const business = await prisma.businessUser.findMany({
-        where: {
-            user_id: user.user_id
-        },
-        include: {
-            business: true
-        }
-    });
-
-    if (business.length > 1) {
-        return {
-            multipleBusinesses: true,
-            businesses: business.map(b => ({
-                business_id: b.business.business_id,
-                business_name: b.business.name
-            }))
-        }
-    }
-
     const token = await jwtAdapter.generateToken({
         user_id: user.user_id,
-        business_id: business.length > 0 ? business[0].business.business_id : null
     });
 
     return token;
@@ -50,11 +30,17 @@ const login = async(input: LoginInput) => {
 type BusinessLoginInput = {
     email: string;
     password: string;
-    business_id: string;
+    business_id?: string;
 }
+
+type BusinessSelectionRequired = {
+    multipleBusinesses: true;
+    businesses: Array<{ business_id: string; business_name: string }>;
+}
+
 const businessLogin = async(input: BusinessLoginInput) => {
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
         where: {
             email: input.email
         }
@@ -64,25 +50,41 @@ const businessLogin = async(input: BusinessLoginInput) => {
 
     const isPasswordValid = bcryptAdapter.compare(input.password, user.password_hash);
     if (!isPasswordValid) throw CustomError.badRequest("Usuario o contraseña incorrectos");
-    
-    const business = await prisma.businessUser.findFirst({
+
+    const memberships = await prisma.businessUser.findMany({
         where: {
-            user_id: user.user_id,
-            business_id: input.business_id
+            user_id: user.user_id
         },
         include: {
             business: true
         }
-    });
+    });    
+    
+    if (memberships.length === 0) throw CustomError.badRequest("El usuario no pertenece a ningún negocio");
 
-    if (!business) throw CustomError.badRequest("El negocio no existe");
+    if (!input.business_id && memberships.length > 1) {
+        const result: BusinessSelectionRequired = {
+            multipleBusinesses: true,
+            businesses: memberships.map(({ business }) => ({
+                business_id: business.business_id,
+                business_name: business.name,
+            })),
+        };
+        return result;
+    }
+
+    const membership = input.business_id
+        ? memberships.find(({ business_id }) => business_id === input.business_id)
+        : memberships[0];
+
+    if (!membership) throw CustomError.forbidden("No tienes acceso a este negocio");
 
     const token = await jwtAdapter.generateToken({
         user_id: user.user_id,
-        business_id: business.business.business_id,
-        name: user.name,
-        email: user.email
+        business_id: membership.business_id,
     });
+
+    if (!token) throw CustomError.internalServer("No se pudo generar el token de acceso");
 
     return token;
 }
@@ -102,7 +104,7 @@ const changePassword = async(user_id: string, input: ChangePasswordInput) => {
         throw CustomError.badRequest("Las contraseñas no coinciden");
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
         where: {
             email: input.email
         }
