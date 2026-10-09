@@ -5,6 +5,7 @@ import { userRoutes } from "./users.routes";
 import { authRoutes } from "./auth.routes";
 import { productRoutes } from "./products.routes";
 import { invitationsRoutes} from "./invitations.routes";
+import { subCategoryRoutes } from "./subCategory.routes";
 
 export const routes = () => {
     const router = Router();
@@ -15,6 +16,7 @@ export const routes = () => {
     router.use('/users', userRoutes());
     router.use('/products', productRoutes());
     router.use('/invitations', invitationsRoutes());
+    router.use('/subcategories', subCategoryRoutes());
 
 
     return router;
