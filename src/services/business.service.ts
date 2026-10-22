@@ -116,6 +116,15 @@ const checkUserEmail = async (email: string) => {
     select: { user_id: true },
   });
 
+  const businessUser = user ? await prisma.businessUser.findFirst({
+    where: { user_id: user.user_id },
+    select: { business_id: true },
+  }) : null;
+
+  if (businessUser) {
+    throw CustomError.badRequest("El usuario ya tiene un negocio asociado.");
+  }
+
   return { exists: Boolean(user) };
 };
 
