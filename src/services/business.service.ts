@@ -17,6 +17,8 @@ type RegisterBusinessParams = {
     email: string;
     mobile: string;
     address?: string;
+    latitude?: string;
+    longitude?: string;
   };
 };
 
@@ -40,10 +42,6 @@ const registerBusiness = async (data: RegisterBusinessParams) => {
         ]
       }
     });
-
-    if (user && (user.email === email || user.phone === data.user?.phone?.trim())) {
-      throw CustomError.badRequest("El email o telefono del usuario ya estan en uso.");
-    }
 
     const userHasBusiness = user ? await tx.businessUser.findFirst({ where: {
       AND: [
@@ -91,6 +89,8 @@ const registerBusiness = async (data: RegisterBusinessParams) => {
         email: data.business.email.trim().toLowerCase(),
         mobile: data.business.mobile.trim(),
         address: data.business.address?.trim() || null,
+        latitude: data.business.latitude,
+        longitude: data.business.longitude,
       },
     });
 
@@ -102,7 +102,7 @@ const registerBusiness = async (data: RegisterBusinessParams) => {
       },
     });
 
-    return { business, user_id: user.user_id };
+    return { business: business.business_id };
   });
 };
 
@@ -115,6 +115,15 @@ const checkUserEmail = async (email: string) => {
     where: { email: email.trim().toLowerCase() },
     select: { user_id: true },
   });
+
+  const businessUser = user ? await prisma.businessUser.findFirst({
+    where: { user_id: user.user_id },
+    select: { business_id: true },
+  }) : null;
+
+  if (businessUser) {
+    throw CustomError.badRequest("El usuario ya tiene un negocio asociado.");
+  }
 
   return { exists: Boolean(user) };
 };
