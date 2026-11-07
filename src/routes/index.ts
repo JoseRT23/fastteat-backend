@@ -16,7 +16,7 @@ export const routes = () => {
     router.use('/users', userRoutes());
     router.use('/products', productRoutes());
     router.use('/invitations', invitationsRoutes());
-    router.use('/subcategories', subCategoryRoutes());
+    router.use('/categories', subCategoryRoutes());
 
 
     return router;

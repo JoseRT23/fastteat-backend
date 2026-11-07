@@ -70,8 +70,22 @@ const createSubCategory = async (data: CreateSubCategoryParams) => {
   return subCategory;
 };
 
-const getAllSubCategories = async () => {
+const getSubCategoriesByCategory = async (categoryId: string) => {
   const subCategories = await prisma.subCategory.findMany({
+    where: {
+      category_id: categoryId,
+      active: true,
+    },
+    orderBy: {
+      order: "asc",
+    },
+  });
+
+  return subCategories;
+};
+
+const getCategories = async () => {
+  const subCategories = await prisma.category.findMany({
     where: {
       active: true,
     },
@@ -83,47 +97,37 @@ const getAllSubCategories = async () => {
   return subCategories;
 };
 
-const getSubCategoriesByCategory = async (category_id: string) => {
-  if (!category_id || category_id.trim() === "") {
-    throw CustomError.badRequest(
-      "El identificador de la categoría es obligatorio.",
-    );
-  }
-
-  const subCategories = await prisma.subCategory.findMany({
-    where: {
-      category_id,
-      active: true,
-    },
-    orderBy: {
-      order: "asc",
-    },
-  });
-
-  return subCategories;
-};
-
-const getSubCategoryById = async (sub_category_id: string) => {
+const getSubCategories = async (sub_category_id: string) => {
   if (!sub_category_id || sub_category_id.trim() === "") {
     throw CustomError.badRequest(
       "El identificador de la subcategoría es obligatorio.",
     );
   }
 
-  const subCategory = await prisma.subCategory.findFirst({
+  const subCategories = await prisma.subCategory.findMany({
     where: {
-      sub_category_id,
-      active: true,
+      category: {
+        is: {
+          subCategories: {
+            some: {
+              sub_category_id,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      name: "asc",
     },
   });
 
-  if (!subCategory) {
+  if (subCategories.length === 0) {
     throw CustomError.notFound(
       "Subcategoría no encontrada.",
     );
   }
 
-  return subCategory;
+  return subCategories;
 };
 
 type UpdateSubCategoryParams = {
@@ -259,9 +263,9 @@ const updateSubCategoryStatus = async (
 
 export default {
   createSubCategory,
-  getAllSubCategories,
   getSubCategoriesByCategory,
-  getSubCategoryById,
+  getCategories,
+  getSubCategories,
   updateSubCategory,
   updateSubCategoryStatus,
 };
