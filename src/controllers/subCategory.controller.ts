@@ -17,53 +17,33 @@ class SubCategoriesController {
     }
   }
 
-  async getAllSubCategories(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
-      const subCategories =
-        await subCategoryService.getAllSubCategories();
-
-      return res.json(subCategories);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getSubCategoriesByCategory(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async getSubCategoriesByCategory(req: Request, res: Response, next: NextFunction) {
     try {
       const categoryId = req.params.category_id;
-
-      const subCategories =
-        await subCategoryService.getSubCategoriesByCategory(
-          categoryId,
-        );
-
+      const subCategories = await subCategoryService.getSubCategoriesByCategory(categoryId);
       return res.json(subCategories);
     } catch (error) {
       next(error);
     }
   }
 
-  async getSubCategoryById(
+  async getCategories(
     req: Request,
     res: Response,
     next: NextFunction,
   ) {
     try {
+      const subCategories = await subCategoryService.getCategories();
+      return res.json(subCategories);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getSubCategories(req: Request, res: Response, next: NextFunction) {
+    try {
       const subCategoryId = req.params.sub_category_id;
-
-      const subCategory =
-        await subCategoryService.getSubCategoryById(
-          subCategoryId,
-        );
-
+      const subCategory = await subCategoryService.getSubCategories(subCategoryId);
       return res.json(subCategory);
     } catch (error) {
       next(error);
