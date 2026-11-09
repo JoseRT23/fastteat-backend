@@ -8,12 +8,17 @@ export const businessRoutes = () => {
 
   router.get("/check-user", controller.checkUserEmail);
   router.post("/register", controller.registerBusiness);
-  router.post("/", controller.createBusiness);
-  router.get("/", controller.getAllBusinesses);
-  router.patch("/:business_id", auth.validateJWT, controller.updateBusiness);
+  router.get("/users", auth.validateJWT, controller.getBusinessUsers);
   router.post("/invite-user", auth.validateJWT, controller.inviteUser);
-  router.get("/:business_id", controller.getBusinessById);
-  router.delete("/:business_id", auth.validateJWT, controller.deleteBusiness);
+
+  router.route("/")
+    .get(controller.getAllBusinesses)
+    .post(controller.createBusiness);
+
+  router.route("/:business_id")
+    .get(controller.getBusinessById)
+    .patch(auth.validateJWT, controller.updateBusiness)
+    .delete(auth.validateJWT, controller.deleteBusiness);
 
   return router;
 };

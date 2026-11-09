@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import businessService from "../services/business.service";
+import { CustomError } from "../utils/errors/custom.errors";
 
 class BusinessController {
   async registerBusiness(req: Request, res: Response, next: NextFunction) {
@@ -112,6 +113,21 @@ class BusinessController {
         message: "Negocio eliminado correctamente.",
       });
     } catch (error) {
+      next(error);
+    }
+  }
+
+  async getBusinessUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const businessId = req.user.business_id;
+
+      if (!businessId) {
+        throw CustomError.badRequest("El id del negocio es requerido");
+      }
+
+      const users = await businessService.getBusinessUsers(businessId);
+      return res.status(200).json(users);
+    } catch (error: any) {
       next(error);
     }
   }
