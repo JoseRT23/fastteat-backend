@@ -382,6 +382,38 @@ const deleteBusiness = async (business_id: string) => {
   });
 };
 
+const getBusinessUsers = async (businessId: string) => {
+  const users = await prisma.user.findMany({
+    where: {
+      businessUser: {
+        some: {
+          business_id: businessId,
+        },
+      },
+    },
+    select: {
+      user_id: true,
+      name: true,
+      email: true,
+      businessUser: {
+        where: {
+          business_id: businessId,
+        },
+        select: {
+          role: true,
+        },
+      },
+    },
+  });
+
+  return users.map((u) => ({
+    user_id: u.user_id,
+    name: u.name,
+    email: u.email,
+    role: u.businessUser[0]?.role,
+  }));
+}
+
 export default {
   registerBusiness,
   checkUserEmail,
@@ -391,4 +423,5 @@ export default {
   inviteUser,
   getBusinessById,
   deleteBusiness,
+  getBusinessUsers
 };
