@@ -331,14 +331,14 @@ const inviteUser = async (data: InviteUserParams) => {
     },
   });
 
-  const inviteUrl = `${process.env.FRONTEND_URL}/invitations/accept?token=${token}`;
+  // const inviteUrl = `${process.env.FRONTEND_URL}/invitations/accept?token=${token}`;
 
-  await emailService.sendInvitationEmail(
-    email,
-    userExists?.name ?? "",
-    businessExists?.name,
-    inviteUrl,
-  );
+  // await emailService.sendInvitationEmail(
+  //   email,
+  //   userExists?.name ?? "",
+  //   businessExists?.name,
+  //   inviteUrl,
+  // );
 
   return {
     message: "Invitacion enviada correctamente.",
