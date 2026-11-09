@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import invitationService from "../services/invitations.service";
+import { CustomError } from "../utils/errors/custom.errors";
 
 class InvitationController {
   async validateInvitation(req: Request, res: Response, next: NextFunction) {
@@ -34,8 +35,13 @@ class InvitationController {
 
   async getAllInvitations(req: Request, res: Response, next: NextFunction) {
     try {
-      const invitations = await invitationService.getAllInvitations();
+      const businessId = req.user.business_id;
 
+      if (!businessId) {
+              throw CustomError.badRequest("");
+            }
+      
+      const invitations = await invitationService.getAllInvitations(businessId);
       return res.json(invitations);
     } catch (error) {
       next(error);
