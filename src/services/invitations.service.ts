@@ -118,8 +118,11 @@ const cancelInvitation = async (token: string) => {
   return { message: "Invitación cancelada correctamente." };
 };
 
-const getAllInvitations = async () => {
+const getAllInvitations = async (businessId: string) => {
   return await prisma.businessInvitations.findMany({
+    where:{
+      business_id: businessId
+    },
     orderBy: {
       expired_at: "desc",
     },
