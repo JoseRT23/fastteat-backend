@@ -123,12 +123,15 @@ const getAllInvitations = async (businessId: string) => {
     where:{
       business_id: businessId
     },
+    select: {
+      business_invitation_id: true,
+      email: true,
+      role: true,
+      status: true,
+    },
     orderBy: {
       expired_at: "desc",
-    },
-    include: {
-      business: true,
-    },
+    }
   });
 };
 

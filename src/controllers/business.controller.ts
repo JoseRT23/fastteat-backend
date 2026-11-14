@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import businessService from "../services/business.service";
 import { CustomError } from "../utils/errors/custom.errors";
+import { UserRole } from "../generated/prisma";
 
 class BusinessController {
   async registerBusiness(req: Request, res: Response, next: NextFunction) {
@@ -130,6 +131,22 @@ class BusinessController {
     } catch (error: any) {
       next(error);
     }
+  }
+
+  async updateBusinessUserRole(req: Request, res: Response, next: NextFunction) {
+    const businessUserId = req.params.business_user_id;
+    const role = req.body?.role;
+
+    if (!businessUserId) {
+      throw CustomError.badRequest("El id del usuario de negocio es requerido");
+    }
+
+    if (!role) {
+      throw CustomError.badRequest(`Debe elegir un rol ${Object.values(UserRole)}`);
+    }
+
+    await businessService.updateBusinessUserRole(businessUserId, role);
+    return res.status(200).json({message: "Rol actualizado"});
   }
 }
 
