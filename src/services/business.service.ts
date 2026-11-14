@@ -392,7 +392,6 @@ const getBusinessUsers = async (businessId: string) => {
       },
     },
     select: {
-      user_id: true,
       name: true,
       email: true,
       businessUser: {
@@ -400,6 +399,7 @@ const getBusinessUsers = async (businessId: string) => {
           business_id: businessId,
         },
         select: {
+          business_user_id: true,
           role: true,
         },
       },
@@ -407,11 +407,22 @@ const getBusinessUsers = async (businessId: string) => {
   });
 
   return users.map((u) => ({
-    user_id: u.user_id,
+    user_id: u.businessUser[0].business_user_id,
     name: u.name,
     email: u.email,
-    role: u.businessUser[0]?.role,
+    role: u.businessUser[0].role,
   }));
+}
+
+const updateBusinessUserRole = async (businessUserId: string, role: UserRole) => {
+  await prisma.businessUser.update({
+    where: {
+      business_user_id: businessUserId
+    },
+    data: {
+      role: role
+    }
+  });
 }
 
 export default {
@@ -423,5 +434,6 @@ export default {
   inviteUser,
   getBusinessById,
   deleteBusiness,
-  getBusinessUsers
+  getBusinessUsers,
+  updateBusinessUserRole,
 };

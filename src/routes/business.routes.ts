@@ -8,8 +8,10 @@ export const businessRoutes = () => {
 
   router.get("/check-user", controller.checkUserEmail);
   router.post("/register", controller.registerBusiness);
-  router.get("/users", auth.validateJWT, controller.getBusinessUsers);
   router.post("/invite-user", auth.validateJWT, controller.inviteUser);
+  
+  router.get("/users", auth.validateJWT, controller.getBusinessUsers)
+  router.patch("/users/:business_user_id", auth.validateJWT, controller.updateBusinessUserRole);
 
   router.route("/")
     .get(controller.getAllBusinesses)
